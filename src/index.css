@@ -1,0 +1,197 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Secure Room - WhatsApp-inspired design system */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* WhatsApp-inspired color palette */
+    --background: 210 11% 96%;
+    --foreground: 210 12% 16%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 12% 16%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 12% 16%;
+
+    /* Primary: WhatsApp teal/green */
+    --primary: 162 72% 28%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Primary light variant */
+    --primary-light: 162 55% 38%;
+
+    /* Primary dark variant */
+    --primary-dark: 162 80% 20%;
+
+    /* Chat bubble colors */
+    --bubble-sent: 162 55% 38%;
+    --bubble-sent-foreground: 0 0% 100%;
+    --bubble-received: 0 0% 100%;
+    --bubble-received-foreground: 210 12% 16%;
+
+    /* Header */
+    --header-bg: 162 72% 28%;
+    --header-foreground: 0 0% 100%;
+
+    /* Secondary: light grey surfaces */
+    --secondary: 210 9% 93%;
+    --secondary-foreground: 210 12% 40%;
+
+    --muted: 210 9% 90%;
+    --muted-foreground: 210 10% 55%;
+
+    --accent: 162 55% 92%;
+    --accent-foreground: 162 72% 28%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 9% 88%;
+    --input: 210 9% 95%;
+    --ring: 162 72% 28%;
+
+    --radius: 0.75rem;
+
+    /* Gradients */
+    --gradient-header: linear-gradient(135deg, hsl(162, 72%, 28%), hsl(162, 60%, 35%));
+    --gradient-bubble-sent: linear-gradient(135deg, hsl(162, 55%, 38%), hsl(162, 65%, 32%));
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+    --shadow-chat: 0 1px 1px rgba(0,0,0,0.07);
+
+    /* Status colors */
+    --online: 120 60% 45%;
+    --away: 38 92% 50%;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 162 72% 28%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 162 40% 94%;
+    --sidebar-accent-foreground: 162 72% 28%;
+    --sidebar-border: 210 9% 88%;
+    --sidebar-ring: 162 72% 28%;
+  }
+
+  .dark {
+    --background: 210 15% 10%;
+    --foreground: 0 0% 95%;
+    --card: 210 12% 14%;
+    --card-foreground: 0 0% 95%;
+    --popover: 210 12% 14%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 162 55% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 10% 20%;
+    --secondary-foreground: 0 0% 75%;
+    --muted: 210 10% 18%;
+    --muted-foreground: 210 8% 55%;
+    --accent: 162 30% 20%;
+    --accent-foreground: 162 55% 65%;
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 10% 20%;
+    --input: 210 10% 18%;
+    --ring: 162 55% 45%;
+    --sidebar-background: 210 15% 12%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-primary: 162 55% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 162 20% 18%;
+    --sidebar-accent-foreground: 162 55% 65%;
+    --sidebar-border: 210 10% 20%;
+    --sidebar-ring: 162 55% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+@layer components {
+  /* Mobile-first app container */
+  .app-container {
+    @apply max-w-md mx-auto min-h-screen flex flex-col relative overflow-hidden;
+    background: hsl(var(--background));
+  }
+
+  /* WhatsApp-like header */
+  .app-header {
+    background: var(--gradient-header);
+    @apply px-4 py-3 flex items-center gap-3 sticky top-0 z-50;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Chat bubble styles */
+  .bubble-sent {
+    background: var(--gradient-bubble-sent);
+    @apply text-white rounded-2xl rounded-tr-sm px-4 py-2 max-w-xs ml-auto;
+    box-shadow: var(--shadow-chat);
+  }
+
+  .bubble-received {
+    @apply bg-white rounded-2xl rounded-tl-sm px-4 py-2 max-w-xs;
+    box-shadow: var(--shadow-chat);
+  }
+
+  /* Group list item */
+  .group-item {
+    @apply flex items-center gap-3 px-4 py-3 bg-card hover:bg-secondary cursor-pointer transition-colors border-b border-border;
+  }
+
+  /* Avatar with online status */
+  .avatar-container {
+    @apply relative inline-block;
+  }
+
+  .avatar-online::after {
+    content: '';
+    @apply absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white;
+    background: hsl(var(--online));
+  }
+
+  /* Input field */
+  .chat-input {
+    @apply flex-1 rounded-full px-4 py-2 text-sm border-0 outline-none resize-none;
+    background: hsl(var(--input));
+    max-height: 120px;
+  }
+
+  /* FAB Button */
+  .fab {
+    @apply fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg z-40 text-white transition-transform hover:scale-105 active:scale-95;
+    background: hsl(var(--primary));
+  }
+
+  /* Badge / chip */
+  .role-badge {
+    @apply text-xs px-2 py-0.5 rounded-full font-medium;
+  }
+
+  .role-admin {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  .role-coadmin {
+    background: hsl(38 92% 92%);
+    color: hsl(38 80% 35%);
+  }
+
+  .role-user {
+    @apply bg-secondary text-secondary-foreground;
+  }
+}
