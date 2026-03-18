@@ -117,7 +117,9 @@ const UserGroupInfoPage: React.FC = () => {
                     <RoleBadge role={member.role} />
                   </div>
                   <p className="text-xs text-muted-foreground truncate">
-                    {maskEmail(member.email)}
+                    {member.role === "admin" || member.role === "coadmin" 
+                      ? member.email 
+                      : maskEmail(member.email)}
                   </p>
                 </div>
               </div>

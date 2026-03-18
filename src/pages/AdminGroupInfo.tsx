@@ -7,7 +7,7 @@ import {
 import { AppHeader } from "@/components/AppHeader";
 import { Avatar } from "@/components/Avatar";
 import { RoleBadge } from "@/components/RoleBadge";
-import { mockGroups, GroupMember } from "@/data/mockData";
+import { mockGroups, GroupMember, currentUser, maskEmail } from "@/data/mockData";
 
 const AdminGroupInfoPage: React.FC = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -15,6 +15,8 @@ const AdminGroupInfoPage: React.FC = () => {
   const [showRoleMenu, setShowRoleMenu] = useState<string | null>(null);
 
   const group = mockGroups.find((g) => g.id === groupId) || mockGroups[0];
+  const myRole = group.members.find(m => m.id === currentUser.id)?.role || "user";
+  const isAdmin = myRole === "admin";
 
   const [members, setMembers] = useState<GroupMember[]>(group.members);
   const [pending, setPending] = useState<GroupMember[]>(group.pendingMembers);
@@ -53,7 +55,9 @@ const AdminGroupInfoPage: React.FC = () => {
           <p className="text-white/70 text-sm mt-1">{group.description}</p>
           <div className="flex items-center gap-2 mt-3 bg-white/10 px-3 py-1.5 rounded-full">
             <Crown size={12} className="text-yellow-300" />
-            <span className="text-white/80 text-xs">You are the Admin</span>
+            <span className="text-white/80 text-xs">
+              You are the {myRole === "admin" ? "Admin" : "Co-Admin"}
+            </span>
           </div>
         </div>
 
@@ -125,7 +129,9 @@ const AdminGroupInfoPage: React.FC = () => {
                   <Avatar name={p.name} size="md" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{p.email}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {isAdmin ? p.email : maskEmail(p.email)}
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -164,7 +170,11 @@ const AdminGroupInfoPage: React.FC = () => {
                     <p className="text-sm font-medium text-foreground truncate">{member.name}</p>
                     <RoleBadge role={member.role} />
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">{member.email}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {isAdmin || member.role === "admin" || member.role === "coadmin" 
+                      ? member.email 
+                      : maskEmail(member.email)}
+                  </p>
                   {member.spamCount > 0 && (
                     <p className="text-xs text-destructive mt-0.5">
                       ⚠️ {member.spamCount}/{member.spamLimit} spam warnings

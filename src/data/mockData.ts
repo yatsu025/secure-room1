@@ -64,63 +64,104 @@ export const currentUser: User = {
 // Mock current user role per group
 export const currentUserRole: UserRole = "admin";
 
+const generateMembers = (count: number, groupType: "admin" | "coadmin" | "member"): GroupMember[] => {
+  const members: GroupMember[] = [];
+  
+  // Add current user with correct role
+  members.push({
+    id: currentUser.id,
+    name: currentUser.name,
+    email: currentUser.email,
+    role: groupType === "admin" ? "admin" : (groupType === "coadmin" ? "coadmin" : "user"),
+    joinedAt: "2024-01-01",
+    spamCount: 0,
+    spamLimit: 3,
+  });
+
+  const names = ["Sarah Miller", "James Wilson", "Emily Davis", "Chris Brown", "Lisa Chen", "Tom Harris", "Nina Patel", "Mark Adams", "Zoe Williams", "David Smith"];
+  
+  for (let i = 0; i < count - 1; i++) {
+    const name = names[i % names.length] + (i > 9 ? ` ${Math.floor(i/10)}` : "");
+    members.push({
+      id: `m${i}`,
+      name: name,
+      email: name.toLowerCase().replace(" ", ".") + "@example.com",
+      role: "user",
+      joinedAt: "2024-02-01",
+      spamCount: 0,
+      spamLimit: 3,
+    });
+  }
+  return members;
+};
+
+const generateMessages = (count: number, members: GroupMember[]): Message[] => {
+  const messages: Message[] = [];
+  const contents = [
+    "Hey team! Just pushed the new updates",
+    "Great! I'll review it shortly 👍",
+    "Can you review the latest PR?",
+    "On it! Give me 10 minutes",
+    "The tests are all passing now 🎉",
+    "Meeting at 2 PM?",
+    "Yes, I'll be there.",
+    "Did anyone see the client feedback?",
+    "Not yet, checking now.",
+    "Looks good to me."
+  ];
+
+  for (let i = 0; i < count; i++) {
+    const sender = members[i % members.length];
+    messages.push({
+      id: `msg${i}`,
+      senderId: sender.id,
+      senderName: sender.name,
+      content: contents[i % contents.length],
+      timestamp: `${10 + Math.floor(i/60)}:${(i % 60).toString().padStart(2, '0')} AM`,
+      isOwn: sender.id === currentUser.id,
+    });
+  }
+  return messages;
+};
+
+const group1Members = generateMembers(10, "admin");
+const group2Members = generateMembers(10, "coadmin");
+const group3Members = generateMembers(10, "member");
+
 export const mockGroups: Group[] = [
   {
     id: "g1",
-    name: "Team Alpha",
-    description: "Main project discussion group",
-    lastMessage: "Can you review the latest PR?",
+    name: "Admin Group",
+    description: "This is a group where you are the admin.",
+    lastMessage: "The tests are all passing now 🎉",
     lastMessageTime: "10:42 AM",
     unreadCount: 3,
-    members: [
-      { id: "m1", name: "Alex Johnson", email: "alex@gmail.com", role: "admin", joinedAt: "2024-01-15", spamCount: 0, spamLimit: 3 },
-      { id: "m2", name: "Sarah Miller", email: "sarah@company.com", role: "coadmin", joinedAt: "2024-01-16", spamCount: 0, spamLimit: 3 },
-      { id: "m3", name: "James Wilson", email: "james@example.com", role: "user", joinedAt: "2024-02-01", spamCount: 1, spamLimit: 3 },
-      { id: "m4", name: "Emily Davis", email: "emily@gmail.com", role: "user", joinedAt: "2024-02-05", spamCount: 0, spamLimit: 3 },
-    ],
-    pendingMembers: [
-      { id: "p1", name: "Chris Brown", email: "chris@example.com", role: "user", joinedAt: "", spamCount: 0, spamLimit: 3 },
-    ],
+    members: group1Members,
+    pendingMembers: [],
   },
   {
     id: "g2",
-    name: "Design Studio",
-    description: "UI/UX design discussions",
-    lastMessage: "New mockups are ready 🎨",
+    name: "Co-Admin Group",
+    description: "This is a group where you are a co-admin.",
+    lastMessage: "Meeting at 2 PM?",
     lastMessageTime: "Yesterday",
     unreadCount: 0,
-    members: [
-      { id: "m1", name: "Alex Johnson", email: "alex@gmail.com", role: "user", joinedAt: "2024-02-10", spamCount: 0, spamLimit: 3 },
-      { id: "m5", name: "Lisa Chen", email: "lisa@studio.io", role: "admin", joinedAt: "2024-02-08", spamCount: 0, spamLimit: 3 },
-    ],
+    members: group2Members,
     pendingMembers: [],
   },
   {
     id: "g3",
-    name: "Marketing Hub",
-    description: "Campaigns and content planning",
-    lastMessage: "Launch date confirmed for Friday",
+    name: "Member Group",
+    description: "This is a group where you are a member.",
+    lastMessage: "Did anyone see the client feedback?",
     lastMessageTime: "Mon",
     unreadCount: 12,
-    members: [
-      { id: "m1", name: "Alex Johnson", email: "alex@gmail.com", role: "coadmin", joinedAt: "2024-03-01", spamCount: 0, spamLimit: 3 },
-      { id: "m6", name: "Tom Harris", email: "tom@marketing.co", role: "admin", joinedAt: "2024-03-01", spamCount: 0, spamLimit: 3 },
-      { id: "m7", name: "Nina Patel", email: "nina@marketing.co", role: "user", joinedAt: "2024-03-05", spamCount: 2, spamLimit: 3 },
-    ],
-    pendingMembers: [
-      { id: "p2", name: "Mark Adams", email: "mark@example.com", role: "user", joinedAt: "", spamCount: 0, spamLimit: 3 },
-      { id: "p3", name: "Zoe Williams", email: "zoe@example.com", role: "user", joinedAt: "", spamCount: 0, spamLimit: 3 },
-    ],
+    members: group3Members,
+    pendingMembers: [],
   },
 ];
 
-export const mockMessages: Message[] = [
-  { id: "msg1", senderId: "m2", senderName: "Sarah Miller", content: "Hey team! Just pushed the new updates", timestamp: "10:30 AM", isOwn: false },
-  { id: "msg2", senderId: "me", senderName: "Alex Johnson", content: "Great! I'll review it shortly 👍", timestamp: "10:32 AM", isOwn: true },
-  { id: "msg3", senderId: "m3", senderName: "James Wilson", content: "Can you review the latest PR?", timestamp: "10:40 AM", isOwn: false },
-  { id: "msg4", senderId: "me", senderName: "Alex Johnson", content: "On it! Give me 10 minutes", timestamp: "10:41 AM", isOwn: true },
-  { id: "msg5", senderId: "m4", senderName: "Emily Davis", content: "The tests are all passing now 🎉", timestamp: "10:42 AM", isOwn: false },
-];
+export const mockMessages: Message[] = generateMessages(100, group1Members);
 
 export const mockSpamMessages: SpamMessage[] = [
   {

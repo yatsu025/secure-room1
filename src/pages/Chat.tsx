@@ -6,6 +6,8 @@ import { Avatar } from "@/components/Avatar";
 import { mockGroups, mockMessages, Message, currentUserRole } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+
 const ChatPage: React.FC = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
@@ -42,9 +44,40 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  const [showSummary, setShowSummary] = useState(false);
+  const [summary, setSummary] = useState("");
+
   const handleGroupInfoClick = () => {
     if (isAdmin) navigate(`/group-info-admin/${group.id}`);
     else navigate(`/group-info-user/${group.id}`);
+  };
+
+  const generateSummary = () => {
+    const summaryText = messages
+      .slice(-10)
+      .map((msg) => `${msg.senderName}: ${msg.content}`)
+      .join("\n");
+    setSummary(`Here's a summary of the last 10 messages:\n\n${summaryText}`);
+  };
+
+  const handleSummary = () => {
+    generateSummary();
+    setShowSummary(true);
+    setShowAIMenu(false);
+  };
+
+  const [isTranslated, setIsTranslated] = useState(false);
+  const [translatedMessages, setTranslatedMessages] = useState<Message[]>([]);
+
+  const handleTranslate = () => {
+    if (isTranslated) {
+      setIsTranslated(false);
+    } else {
+      const newTranslatedMessages = messages.map(msg => ({ ...msg, content: `${msg.content} (translated to Hindi)` }));
+      setTranslatedMessages(newTranslatedMessages);
+      setIsTranslated(true);
+    }
+    setShowAIMenu(false);
   };
 
   return (
@@ -84,7 +117,7 @@ const ChatPage: React.FC = () => {
           className="absolute top-16 right-2 z-50 bg-card rounded-xl shadow-lg border border-border overflow-hidden animate-scale-in"
           onMouseLeave={() => setShowAIMenu(false)}
         >
-          <button className="flex items-center gap-3 px-4 py-3 w-full hover:bg-secondary text-sm text-foreground">
+          <button onClick={handleSummary} className="flex items-center gap-3 px-4 py-3 w-full hover:bg-secondary text-sm text-foreground">
             <Sparkles size={16} className="text-primary" />
             <div className="text-left">
               <div className="font-medium">Summary AI</div>
@@ -92,15 +125,26 @@ const ChatPage: React.FC = () => {
             </div>
           </button>
           <div className="h-px bg-border" />
-          <button className="flex items-center gap-3 px-4 py-3 w-full hover:bg-secondary text-sm text-foreground">
+          <button onClick={handleTranslate} className="flex items-center gap-3 px-4 py-3 w-full hover:bg-secondary text-sm text-foreground">
             <Languages size={16} className="text-primary" />
             <div className="text-left">
-              <div className="font-medium">Translate AI</div>
-              <div className="text-xs text-muted-foreground">Translate messages</div>
+              <div className="font-medium">{isTranslated ? "Original" : "Translate AI"}</div>
+              <div className="text-xs text-muted-foreground">{isTranslated ? "Show original messages" : "Translate messages"}</div>
             </div>
           </button>
         </div>
       )}
+
+      <Dialog open={showSummary} onOpenChange={setShowSummary}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Chat Summary</DialogTitle>
+            <DialogDescription>
+              {summary}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
 
       {/* Chat background */}
       <div
@@ -114,7 +158,7 @@ const ChatPage: React.FC = () => {
           </span>
         </div>
 
-        {messages.map((msg) => (
+        {(isTranslated ? translatedMessages : messages).map((msg) => (
           <div
             key={msg.id}
             className={cn("flex", msg.isOwn ? "justify-end" : "justify-start")}

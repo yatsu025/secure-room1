@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ const LoginPage: React.FC = () => {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,10 +20,11 @@ const LoginPage: React.FC = () => {
     }
     setError("");
     setLoading(true);
-    // Simulate auth (connect to Supabase when ready)
+    // Simulate auth for demo
     setTimeout(() => {
       setLoading(false);
-      navigate("/dashboard");
+      setSuccess(true);
+      setTimeout(() => navigate("/dashboard"), 1500);
     }, 1200);
   };
 
@@ -134,6 +137,19 @@ const LoginPage: React.FC = () => {
           <span className="text-primary text-xs font-medium">End-to-End Encryption</span>
         </div>
       </div>
+
+      {success && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20">
+          <Card className="w-80 animate-scale-in">
+            <CardHeader>
+              <CardTitle className="text-center">Login Successful</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-muted-foreground">Welcome back! Redirecting you to your dashboard...</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { ShieldAlert, Check, X, ChevronRight, AlertTriangle } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { Avatar } from "@/components/Avatar";
-import { mockSpamMessages, SpamMessage } from "@/data/mockData";
+import { mockSpamMessages, SpamMessage, mockGroups } from "@/data/mockData";
 
 const SpamMessagesPage: React.FC = () => {
   const { groupId } = useParams();
@@ -23,9 +23,20 @@ const SpamMessagesPage: React.FC = () => {
   };
 
   const handleDecline = (id: string) => {
+    const spamMessage = spamList.find(s => s.id === id);
+    if (spamMessage) {
+      const user = mockGroups.flatMap(g => g.members).find(m => m.name === spamMessage.userName);
+      if (user) {
+        user.spamCount += 1;
+        if (user.spamCount >= user.spamLimit) {
+          showNotif(`${user.name} has been removed from the group.`, "error");
+        } else {
+          showNotif("Message declined. Spam count reduced.", "error");
+        }
+      }
+    }
     setSpamList((prev) => prev.filter((s) => s.id !== id));
     setSelected(null);
-    showNotif("Message declined. Spam count reduced.", "error");
   };
 
   return (

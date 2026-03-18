@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ExternalLink, Eye, EyeOff, Save, Key, ChevronDown, Lock } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { cn } from "@/lib/utils";
+import { mockGroups, currentUser } from "@/data/mockData";
 
 const providers = [
   { id: "anthropic", name: "Anthropic", models: ["claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-3-5"] },
@@ -32,6 +33,15 @@ const ApiIntegrationPage: React.FC = () => {
   const [saved, setSaved] = useState(false);
 
   const currentProvider = providers.find((p) => p.id === provider);
+
+  const group = mockGroups.find((g) => g.id === groupId) || mockGroups[0];
+  const myRole = group.members.find((m) => m.id === currentUser.id)?.role || "user";
+  const isMember = myRole === "user";
+
+  const visibleFeatures = features.filter((feat) => {
+    if (isMember && feat.id === "spam") return false;
+    return true;
+  });
 
   const toggleFeature = (id: string) => {
     setSelectedFeatures((prev) =>
@@ -175,7 +185,7 @@ const ApiIntegrationPage: React.FC = () => {
             Enable Features
           </label>
           <div className="space-y-3">
-            {features.map((feat) => (
+            {visibleFeatures.map((feat) => (
               <div
                 key={feat.id}
                 onClick={() => toggleFeature(feat.id)}
