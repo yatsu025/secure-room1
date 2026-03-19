@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Send, Sparkles, Languages, MoreVertical, Mic, Paperclip } from "lucide-react";
+import { Send, Sparkles, Languages, MoreVertical, Mic, Paperclip, Pencil, Trash2, X } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { Avatar } from "@/components/Avatar";
 import { mockGroups, mockMessages, Message, currentUserRole } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import doubleCheck from "@/PUBLIC/image.png";
 
 const ChatPage: React.FC = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -14,6 +16,8 @@ const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>(mockMessages);
   const [input, setInput] = useState("");
   const [showAIMenu, setShowAIMenu] = useState(false);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const isDarkMode = document.documentElement.classList.contains("dark");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const group = mockGroups.find((g) => g.id === groupId) || mockGroups[0];
@@ -25,16 +29,48 @@ const ChatPage: React.FC = () => {
 
   const sendMessage = () => {
     if (!input.trim()) return;
-    const newMsg: Message = {
-      id: `msg${Date.now()}`,
-      senderId: "me",
-      senderName: "Alex Johnson",
-      content: input.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      isOwn: true,
-    };
-    setMessages((prev) => [...prev, newMsg]);
+
+    if (editingMessage) {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === editingMessage.id ? { ...msg, content: input.trim(), isEdited: true } : msg
+        )
+      );
+      setEditingMessage(null);
+    } else {
+      const newMsg: Message = {
+        id: `msg${Date.now()}`,
+        senderId: "me",
+        senderName: "Alex Johnson",
+        content: input.trim(),
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        isOwn: true,
+      };
+      setMessages((prev) => [...prev, newMsg]);
+    }
     setInput("");
+  };
+
+  const handleEdit = (msg: Message) => {
+    setEditingMessage(msg);
+    setInput(msg.content);
+  };
+
+  const cancelEdit = () => {
+    setEditingMessage(null);
+    setInput("");
+  };
+
+  const deleteForMe = (msgId: string) => {
+    setMessages((prev) => prev.filter((msg) => msg.id !== msgId));
+  };
+
+  const deleteForEveryone = (msgId: string) => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === msgId ? { ...msg, content: "This message was deleted", isDeleted: true } : msg
+      )
+    );
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -148,12 +184,18 @@ const ChatPage: React.FC = () => {
 
       {/* Chat background */}
       <div
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-2"
-        style={{ backgroundImage: "radial-gradient(hsl(var(--border)) 1px, transparent 1px)", backgroundSize: "20px 20px", backgroundColor: "hsl(210 11% 94%)" }}
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-3"
+        style={{ 
+          backgroundImage: isDarkMode 
+            ? "radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)" 
+            : "radial-gradient(hsl(var(--border)) 1px, transparent 1px)", 
+          backgroundSize: "20px 20px", 
+          backgroundColor: isDarkMode ? "hsl(210 15% 8%)" : "hsl(210 11% 94%)" 
+        }}
       >
         {/* Date divider */}
-        <div className="flex items-center justify-center">
-          <span className="bg-white/80 text-xs text-muted-foreground px-3 py-1 rounded-full shadow-sm">
+        <div className="flex items-center justify-center mb-4">
+          <span className="bg-card text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-3 py-1 rounded-full shadow-sm border border-border">
             Today
           </span>
         </div>
@@ -163,27 +205,101 @@ const ChatPage: React.FC = () => {
             key={msg.id}
             className={cn("flex", msg.isOwn ? "justify-end" : "justify-start")}
           >
-            <div className={cn("max-w-[78%]")}>
+            <div className={cn("max-w-[85%]")}>
               {!msg.isOwn && (
-                <p className="text-xs text-primary font-medium mb-1 ml-1">{msg.senderName}</p>
+                <p className="text-[11px] text-primary font-bold mb-0.5 ml-2 opacity-90">{msg.senderName}</p>
               )}
-              <div className={cn(msg.isOwn ? "bubble-sent" : "bubble-received")}>
-                <p className="text-sm leading-relaxed">{msg.content}</p>
-                <p
-                  className={cn(
-                    "text-xs mt-1 text-right",
-                    msg.isOwn ? "text-white/60" : "text-muted-foreground"
-                  )}
-                >
-                  {msg.timestamp}
-                  {msg.isOwn && <span className="ml-1">✓✓</span>}
-                </p>
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div className={cn(
+                    msg.isOwn ? "bubble-sent cursor-pointer" : "bubble-received",
+                    "relative pr-4 min-w-[60px]",
+                    msg.isDeleted && "italic opacity-60"
+                  )}>
+                    <div className="flex flex-wrap items-end gap-x-2 gap-y-0.5">
+                      <p className="text-sm leading-relaxed break-words flex-1 min-w-[80px]">
+                        {msg.content}
+                        {msg.isEdited && !msg.isDeleted && (
+                          <span className="text-[10px] ml-1 opacity-70">(edited)</span>
+                        )}
+                      </p>
+                      <div className="flex items-center gap-0.5 ml-auto pt-1 pb-0.5 shrink-0">
+                        <span className={cn(
+                          "text-[10px] font-medium leading-none",
+                          msg.isOwn ? "text-white/70" : "text-muted-foreground"
+                        )}>
+                          {msg.timestamp}
+                        </span>
+                        {msg.isOwn && !msg.isDeleted && (
+                          <img 
+                            src={doubleCheck} 
+                            alt="check" 
+                            className="w-3.5 h-3.5 object-contain -mr-1"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </PopoverTrigger>
+                {msg.isOwn && !msg.isDeleted && (
+                  <PopoverContent className="w-48 p-1" align="end">
+                    <div className="flex flex-col">
+                      <button
+                        onClick={() => handleEdit(msg)}
+                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary rounded-md transition-colors"
+                      >
+                        <Pencil size={14} />
+                        Edit Message
+                      </button>
+                      <button
+                        onClick={() => deleteForMe(msg.id)}
+                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary rounded-md transition-colors"
+                      >
+                        <Trash2 size={14} />
+                        Delete for me
+                      </button>
+                      <button
+                        onClick={() => deleteForEveryone(msg.id)}
+                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-destructive/10 text-destructive rounded-md transition-colors font-medium"
+                      >
+                        <Trash2 size={14} />
+                        Delete for everyone
+                      </button>
+                    </div>
+                  </PopoverContent>
+                )}
+                {!msg.isOwn && !msg.isDeleted && (
+                  <PopoverContent className="w-40 p-1" align="start">
+                    <button
+                      onClick={() => deleteForMe(msg.id)}
+                      className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-secondary w-full rounded-md transition-colors"
+                    >
+                      <Trash2 size={14} />
+                      Delete for me
+                    </button>
+                  </PopoverContent>
+                )}
+              </Popover>
             </div>
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
+
+      {/* Editing indicator */}
+      {editingMessage && (
+        <div className="bg-secondary/30 px-4 py-2 flex items-center justify-between border-t border-border animate-in slide-in-from-bottom-2">
+          <div className="flex items-center gap-2 text-primary">
+            <Pencil size={14} />
+            <div className="text-xs truncate max-w-[200px]">
+              Editing: <span className="italic">"{editingMessage.content}"</span>
+            </div>
+          </div>
+          <button onClick={cancelEdit} className="p-1 hover:bg-secondary rounded-full">
+            <X size={16} className="text-muted-foreground" />
+          </button>
+        </div>
+      )}
 
       {/* Input Bar */}
       <div className="bg-card border-t border-border px-3 py-2 flex items-end gap-2">
@@ -194,20 +310,20 @@ const ChatPage: React.FC = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
-          className="chat-input flex-1"
+          placeholder={editingMessage ? "Edit message..." : "Type a message..."}
+          className="chat-input flex-1 bg-secondary/50 focus:bg-secondary transition-colors"
           rows={1}
         />
         <button
           onClick={sendMessage}
           className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all",
+            "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all shadow-sm",
             input.trim()
               ? "bg-primary text-primary-foreground hover:opacity-90 scale-100"
               : "bg-muted text-muted-foreground scale-95"
           )}
         >
-          {input.trim() ? <Send size={18} /> : <Mic size={18} />}
+          {editingMessage ? <Send size={18} /> : (input.trim() ? <Send size={18} /> : <Mic size={18} />)}
         </button>
       </div>
     </div>

@@ -109,6 +109,10 @@
     --sidebar-accent-foreground: 162 55% 65%;
     --sidebar-border: 210 10% 20%;
     --sidebar-ring: 162 55% 45%;
+
+    /* Dark mode gradients */
+    --gradient-header: linear-gradient(135deg, hsl(162, 72%, 20%), hsl(162, 60%, 25%));
+    --gradient-bubble-sent: linear-gradient(135deg, hsl(162, 55%, 30%), hsl(162, 65%, 25%));
   }
 }
 
@@ -144,7 +148,8 @@
   }
 
   .bubble-received {
-    @apply bg-white rounded-2xl rounded-tl-sm px-4 py-2 max-w-xs;
+    background: hsl(var(--card));
+    @apply text-card-foreground rounded-2xl rounded-tl-sm px-4 py-2 max-w-xs;
     box-shadow: var(--shadow-chat);
   }
 

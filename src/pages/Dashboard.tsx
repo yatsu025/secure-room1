@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, User, Shield } from "lucide-react";
+import { Search, Plus, User, Shield, Moon, Sun } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { Avatar } from "@/components/Avatar";
 import { mockGroups, currentUser } from "@/data/mockData";
@@ -9,6 +9,22 @@ import { cn } from "@/lib/utils";
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return document.documentElement.classList.contains("dark") || 
+           localStorage.getItem("theme") === "dark";
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDarkMode]);
+
+  const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   const filtered = mockGroups.filter((g) =>
     g.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -27,6 +43,13 @@ const DashboardPage: React.FC = () => {
         }
         rightSlot={
           <>
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-white/10 transition"
+              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
             <button
               onClick={() => navigate("/create-group")}
               className="p-2 rounded-full hover:bg-white/10 transition"

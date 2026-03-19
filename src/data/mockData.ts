@@ -41,6 +41,8 @@ export interface Message {
   timestamp: string;
   isOwn: boolean;
   isPending?: boolean; // spam pending
+  isEdited?: boolean;
+  isDeleted?: boolean;
 }
 
 export interface SpamMessage {
